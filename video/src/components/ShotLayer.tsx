@@ -2,7 +2,7 @@ import React from "react";
 import { AbsoluteFill, Img, useCurrentFrame } from "remotion";
 import { LOOK, PhotoDef, PHOTOS, Scene, Shot } from "../config";
 import { usePhoto } from "../lib/assets";
-import { gradeFilter, regionFor, useLayout } from "../lib/layout";
+import { gradeFilter, hexA, regionFor, useLayout } from "../lib/layout";
 import { easeCamera, easeInOut, easeOut, progress, sec } from "../lib/timeline";
 import { Placeholder } from "./Placeholder";
 
@@ -56,7 +56,7 @@ export const ShotLayer: React.FC<{
   const ty = (py / 100) * region.h * p;
 
   let opacity = 1;
-  let blur = 0;
+  let blur = shot.soften ? shot.soften * L.u : 0;
   let brightness = 1;
   let displace = 0;
   let streak = 0;
@@ -64,11 +64,11 @@ export const ShotLayer: React.FC<{
 
   if (type === "fade") {
     opacity = easeInOut(r);
-    blur = (1 - easeOut(r)) * LOOK.blur.focusIn * L.u;
+    blur += (1 - easeOut(r)) * LOOK.blur.focusIn * L.u;
   } else if (type === "snap") {
     const e = easeOut(r);
     scale *= LOOK.zoom.snapFrom + (1 - LOOK.zoom.snapFrom) * e;
-    blur = (1 - e) * LOOK.blur.focusIn * 1.2 * L.u;
+    blur += (1 - e) * LOOK.blur.focusIn * 1.2 * L.u;
     brightness = 1 + 0.55 * (1 - e) ** 2;
     displace = (1 - e) * 36 * L.u;
   } else if (type === "wipe") {
@@ -144,7 +144,7 @@ export const ShotLayer: React.FC<{
         </svg>
       ) : null}
 
-      {shot.parallax && info ? (
+      {(shot.parallax || framing === "panel") && info ? (
         <AbsoluteFill style={{ overflow: "hidden" }}>
           <Img
             src={info.src}
@@ -153,7 +153,7 @@ export const ShotLayer: React.FC<{
               height: "100%",
               objectFit: "cover",
               transform: `translateX(${-tx * 0.35}px) scale(${LOOK.zoom.parallaxBackground + 0.03 * p})`,
-              filter: `${gradeFilter(tone)} blur(${44 * L.u}px) brightness(0.32)`,
+              filter: `${gradeFilter(tone)} blur(${LOOK.blur.background * L.u}px) brightness(0.82)`,
             }}
           />
         </AbsoluteFill>
@@ -201,15 +201,15 @@ export const ShotLayer: React.FC<{
         </div>
       </div>
 
-      {framing === "full" ? (
-        <AbsoluteFill
-          style={{
-            background: L.portrait
-              ? "linear-gradient(to bottom, transparent 38%, rgba(0,0,0,0.86) 100%)"
-              : "linear-gradient(to bottom, transparent 42%, rgba(0,0,0,0.74) 100%), linear-gradient(to right, rgba(0,0,0,0.35) 0%, transparent 55%)",
-          }}
-        />
-      ) : null}
+      {/* soft warm shade where the subtitles sit */}
+      <AbsoluteFill
+        style={{
+          background:
+            framing === "full"
+              ? `linear-gradient(to bottom, transparent 48%, ${hexA(LOOK.colors.shadow, 0.62)} 100%), linear-gradient(to right, ${hexA(LOOK.colors.shadow, 0.22)} 0%, transparent 50%)`
+              : `linear-gradient(to right, ${hexA(LOOK.colors.shadow, 0.5)} 0%, ${hexA(LOOK.colors.shadow, 0.28)} 30%, transparent 55%)`,
+        }}
+      />
     </AbsoluteFill>
   );
 };

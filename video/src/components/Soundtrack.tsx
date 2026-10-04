@@ -1,6 +1,6 @@
 import React from "react";
 import { Audio, Sequence, staticFile } from "remotion";
-import { AUDIO, FPS } from "../config";
+import { AUDIO, FPS, SCENES } from "../config";
 import { useAssets } from "../lib/assets";
 import { at, keyframes, TOTAL_FRAMES, volumeKeys } from "../lib/timeline";
 
@@ -38,9 +38,43 @@ export const Soundtrack: React.FC = () => {
             );
           });
         })}
+      <SubtitleSfx />
       {AUDIO.voiceover && audio[AUDIO.voiceover] ? (
         <Audio src={staticFile(`assets/audio/${AUDIO.voiceover}`)} />
       ) : null}
+    </>
+  );
+};
+
+/** A soft cue each time a subtitle line appears (the final title has the mat slap instead). */
+const SubtitleSfx: React.FC = () => {
+  const { audio } = useAssets();
+  const lineSounds = AUDIO.sfx.line.filter((f) => audio[f]);
+  let n = 0;
+  return (
+    <>
+      {SCENES.flatMap((scene) =>
+        scene.text.flatMap((group) =>
+          group.lines
+            .filter((line) => !line.impact && !line.silent)
+            .map((line) => {
+              const file = line.style === "display" && audio[AUDIO.sfx.display] ? AUDIO.sfx.display : lineSounds[n++ % Math.max(1, lineSounds.length)];
+              if (!file) return null;
+              const from = at(scene.id, line.at);
+              return (
+                <Sequence
+                  key={`sfx-${scene.id}-${line.at}`}
+                  from={from}
+                  durationInFrames={Math.max(1, Math.floor(audio[file] * FPS))}
+                  name="♪ sfx"
+                  layout="none"
+                >
+                  <Audio src={staticFile(`assets/audio/${file}`)} volume={AUDIO.sfx.volume} />
+                </Sequence>
+              );
+            }),
+        ),
+      )}
     </>
   );
 };

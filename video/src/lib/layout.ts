@@ -1,14 +1,19 @@
 import { useVideoConfig } from "remotion";
 import { LOOK, Tone } from "../config";
 
-export type Layout = { W: number; H: number; portrait: boolean; u: number };
+export type Layout = { W: number; H: number; u: number };
+
+/** "#rrggbb" + alpha → rgba() */
+export const hexA = (hex: string, a: number) => {
+  const n = parseInt(hex.slice(1), 16);
+  return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${a})`;
+};
 
 export const useLayout = (): Layout => {
   const { width, height } = useVideoConfig();
   return {
     W: width,
     H: height,
-    portrait: height > width,
     // 1 unit = 1px at 1080 on the short side
     u: Math.min(width, height) / 1080,
   };
@@ -17,17 +22,8 @@ export const useLayout = (): Layout => {
 export type Region = { x: number; y: number; w: number; h: number; mask?: string };
 
 export const regionFor = (framing: "panel" | "full", L: Layout): Region => {
-  const { W, H, portrait } = L;
+  const { W, H } = L;
   if (framing === "full") return { x: 0, y: 0, w: W, h: H };
-  if (portrait) {
-    return {
-      x: 0,
-      y: 0,
-      w: W,
-      h: H * 0.7,
-      mask: "linear-gradient(to bottom, #000 0%, #000 58%, transparent 100%)",
-    };
-  }
   return {
     x: W * 0.24,
     y: 0,

@@ -46,7 +46,12 @@ export const probeAssets = async (): Promise<Assets> => {
     }),
   );
 
-  const files = [...AUDIO.layers.map((l) => l.file), ...(AUDIO.voiceover ? [AUDIO.voiceover] : [])];
+  const files = [
+    ...AUDIO.layers.map((l) => l.file),
+    ...AUDIO.sfx.line,
+    AUDIO.sfx.display,
+    ...(AUDIO.voiceover ? [AUDIO.voiceover] : []),
+  ];
   const durations = await Promise.all(files.map((f) => audioDuration(staticFile(`assets/audio/${f}`))));
   const audio: Record<string, number> = {};
   files.forEach((f, i) => {

@@ -1,14 +1,14 @@
 import React from "react";
 import { useCurrentFrame } from "remotion";
 import { Line, LOOK, TextGroup, TextStyle } from "../config";
-import { Layout, useLayout } from "../lib/layout";
+import { hexA, Layout, useLayout } from "../lib/layout";
 import { easeInOut, easeOut, progress, sec } from "../lib/timeline";
 
 const STYLES = (L: Layout): Record<TextStyle, React.CSSProperties> => {
   const u = L.u;
   return {
     display: { fontFamily: LOOK.fonts.display, fontWeight: 300, fontSize: 112 * u, lineHeight: 1.04, letterSpacing: "0.005em" },
-    body: { fontFamily: LOOK.fonts.text, fontWeight: 300, fontSize: 56 * u, lineHeight: 1.22 },
+    body: { fontFamily: LOOK.fonts.text, fontWeight: 400, fontSize: 56 * u, lineHeight: 1.22 },
     list: {
       fontFamily: LOOK.fonts.display,
       fontWeight: 300,
@@ -23,7 +23,7 @@ const STYLES = (L: Layout): Record<TextStyle, React.CSSProperties> => {
     title: {
       fontFamily: LOOK.fonts.display,
       fontWeight: 500,
-      fontSize: (L.portrait ? 190 : 214) * u,
+      fontSize: 214 * u,
       lineHeight: 0.98,
       letterSpacing: "0.035em",
     },
@@ -31,7 +31,7 @@ const STYLES = (L: Layout): Record<TextStyle, React.CSSProperties> => {
   };
 };
 
-/** `*x*` → larger / denser, `[x]` → accent colour. */
+/** `*x*` → bold italic in the accent colour, `[x]` → accent colour (numbers). */
 const RichText: React.FC<{ text: string; style: TextStyle }> = ({ text, style }) => {
   const parts = text.split(/(\*[^*]+\*|\[[^\]]+\])/g).filter(Boolean);
   const big = style === "body";
@@ -42,11 +42,14 @@ const RichText: React.FC<{ text: string; style: TextStyle }> = ({ text, style })
           return (
             <span
               key={i}
-              style={
-                big
-                  ? { fontFamily: LOOK.fonts.display, fontWeight: 400, fontSize: "1.32em", letterSpacing: "0.01em", lineHeight: 1 }
-                  : { fontWeight: 500 }
-              }
+              style={{
+                fontFamily: LOOK.fonts.text,
+                fontStyle: "italic",
+                fontWeight: 600,
+                color: LOOK.colors.accent,
+                fontSize: big ? "1.14em" : undefined,
+                letterSpacing: "0.005em",
+              }}
             >
               {part.slice(1, -1)}
             </span>
@@ -72,13 +75,10 @@ const RichText: React.FC<{ text: string; style: TextStyle }> = ({ text, style })
 };
 
 const zoneStyle = (zone: TextGroup["zone"], L: Layout): React.CSSProperties => {
-  const { W, H, portrait } = L;
+  const { W, H } = L;
   const base: React.CSSProperties = { position: "absolute", display: "flex", flexDirection: "column" };
   if (zone === "center") {
     return { ...base, inset: 0, alignItems: "center", justifyContent: "center", textAlign: "center", padding: `0 ${W * 0.06}px` };
-  }
-  if (portrait) {
-    return { ...base, left: W * 0.08, right: W * 0.08, bottom: H * 0.09, top: H * 0.45, justifyContent: "flex-end" };
   }
   if (zone === "side") {
     return { ...base, left: W * 0.065, width: W * 0.4, top: 0, bottom: 0, justifyContent: "center" };
@@ -150,7 +150,7 @@ export const TextGroupView: React.FC<{ group: TextGroup }> = ({ group }) => {
           opacity: 1 - o,
           filter: o > 0 ? `blur(${o * LOOK.blur.text * 0.7 * L.u}px)` : undefined,
           transform: group.zone === "center" ? undefined : `translateY(${drift}px)`,
-          textShadow: "0 2px 30px rgba(0,0,0,0.55)",
+          textShadow: `0 1px 3px ${hexA(LOOK.colors.shadow, 0.6)}, 0 3px 26px ${hexA(LOOK.colors.shadow, 0.65)}`,
           textWrap: "pretty",
         }}
       >

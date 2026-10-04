@@ -34,7 +34,7 @@ export const SceneView: React.FC<{ scene: Scene }> = ({ scene }) => {
     : 0;
 
   return (
-    <AbsoluteFill style={{ backgroundColor: LOOK.colors.background }}>
+    <AbsoluteFill style={{ backgroundColor: LOOK.colors.light }}>
       <AbsoluteFill style={{ transform: `translate(${shake.x}px, ${shake.y}px) rotate(${shake.r}deg) scale(1.01)` }}>
         {shots.map(({ shot, from, to }, i) =>
           frame >= from && frame < to ? (
@@ -42,13 +42,13 @@ export const SceneView: React.FC<{ scene: Scene }> = ({ scene }) => {
           ) : null,
         )}
       </AbsoluteFill>
-      {dim > 0 ? <AbsoluteFill style={{ backgroundColor: LOOK.colors.background, opacity: dim }} /> : null}
+      {dim > 0 ? <AbsoluteFill style={{ backgroundColor: LOOK.colors.shadow, opacity: dim }} /> : null}
       <AbsoluteFill style={{ transform: `translate(${shake.x * 0.35}px, ${shake.y * 0.35}px)` }}>
         {scene.text.map((group, i) => (
           <TextGroupView key={i} group={group} />
         ))}
       </AbsoluteFill>
-      {fadeOut > 0 ? <AbsoluteFill style={{ backgroundColor: LOOK.colors.background, opacity: fadeOut }} /> : null}
+      {fadeOut > 0 ? <AbsoluteFill style={{ backgroundColor: LOOK.colors.light, opacity: fadeOut }} /> : null}
     </AbsoluteFill>
   );
 };

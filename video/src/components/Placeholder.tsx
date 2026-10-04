@@ -1,8 +1,8 @@
 import React from "react";
 import { LOOK, PHOTOS, PhotoKey, PlaceholderKind } from "../config";
 
-const STROKE = "rgba(255,255,255,0.10)";
-const FAINT = "rgba(255,255,255,0.05)";
+const STROKE = "rgba(255,248,230,0.28)";
+const FAINT = "rgba(255,248,230,0.14)";
 
 const Motif: React.FC<{ kind: PlaceholderKind; w: number; h: number }> = ({ kind, w, h }) => {
   const cx = w / 2;
@@ -85,7 +85,7 @@ const Motif: React.FC<{ kind: PlaceholderKind; w: number; h: number }> = ({ kind
         for (let i = 0; i < n; i++) {
           const x = (i + (row % 2) * 0.5) * r * 3.2;
           const o = 0.04 + ((i * 37 + row * 11) % 9) / 90;
-          dots.push(<circle key={`${row}-${i}`} cx={x} cy={y} r={r} fill={`rgba(255,255,255,${o})`} />);
+          dots.push(<circle key={`${row}-${i}`} cx={x} cy={y} r={r} fill={`rgba(255,248,230,${o * 2.4})`} />);
         }
       }
       return <>{dots}</>;
@@ -103,7 +103,7 @@ export const Placeholder: React.FC<{ photo: PhotoKey; w: number; h: number; u: n
         height: h,
         position: "relative",
         overflow: "hidden",
-        background: `radial-gradient(ellipse 70% 60% at 50% 42%, #26262a 0%, ${LOOK.colors.placeholder} 75%)`,
+        background: `radial-gradient(ellipse 70% 60% at 50% 42%, #a59580 0%, ${LOOK.colors.placeholder} 75%)`,
       }}
     >
       <svg width={w} height={h} style={{ position: "absolute", inset: 0 }}>
@@ -117,7 +117,7 @@ export const Placeholder: React.FC<{ photo: PhotoKey; w: number; h: number; u: n
             right: w * 0.06,
             textAlign: "right",
             fontFamily: LOOK.fonts.display,
-            color: "rgba(255,255,255,0.42)",
+            color: "rgba(255,248,230,0.75)",
             fontSize: 24 * u,
             letterSpacing: "0.22em",
             textTransform: "uppercase",

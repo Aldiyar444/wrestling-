@@ -1,9 +1,9 @@
 import React from "react";
 import { AbsoluteFill, useCurrentFrame } from "remotion";
 import { LOOK } from "../config";
-import { useLayout } from "../lib/layout";
+import { hexA, useLayout } from "../lib/layout";
 
-/** Film grain + vignette over the whole film. */
+/** Lifted shadows, soft warm vignette and film grain over the whole film. */
 export const Finish: React.FC = () => {
   const frame = useCurrentFrame();
   const { W, H } = useLayout();
@@ -12,9 +12,12 @@ export const Finish: React.FC = () => {
 
   return (
     <>
+      {LOOK.haze > 0 ? (
+        <AbsoluteFill style={{ backgroundColor: LOOK.colors.light, mixBlendMode: "screen", opacity: LOOK.haze }} />
+      ) : null}
       <AbsoluteFill
         style={{
-          background: `radial-gradient(ellipse 78% 78% at 50% 48%, transparent 52%, rgba(0,0,0,${LOOK.vignette}) 100%)`,
+          background: `radial-gradient(ellipse 80% 80% at 50% 48%, transparent 55%, ${hexA(LOOK.colors.shadow, LOOK.vignette)} 100%)`,
         }}
       />
       {LOOK.grain > 0 ? (

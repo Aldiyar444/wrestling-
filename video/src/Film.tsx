@@ -14,7 +14,7 @@ export type FilmProps = { assets: Assets };
 
 export const Film: React.FC<FilmProps> = ({ assets }) => (
   <AssetsContext.Provider value={assets}>
-    <AbsoluteFill style={{ backgroundColor: LOOK.colors.background }}>
+    <AbsoluteFill style={{ backgroundColor: LOOK.colors.light }}>
       {SCENES.map((scene, i) => (
         <Sequence key={scene.id} from={sceneStart[scene.id]} durationInFrames={sceneLength[i]} name={scene.title}>
           <SceneView scene={scene} />

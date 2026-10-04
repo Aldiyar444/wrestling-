@@ -142,11 +142,11 @@ const write = (name, chs) => {
 
 // ── stems ───────────────────────────────────────────────────────────────────
 
-// 1. Quiet ambient drone (A minor add9), loops every 40 s.
+// 1. Quiet warm drone (C major add9), loops every 40 s.
 {
   const len = 40;
   const r = rng(1);
-  const notes = [55, 82.4, 110, 130.8, 164.8, 246.9];
+  const notes = [65.41, 98, 130.81, 164.81, 196, 293.66];
   const gains = [1, 0.7, 0.55, 0.38, 0.3, 0.12];
   const chs = [-1, 1].map((side) => {
     const x = buf(len);
@@ -251,7 +251,7 @@ const write = (name, chs) => {
   const beats = 32;
   const n = Math.round(beats * beat * SR);
   const dry = new Float32Array(n);
-  const roots = [55, 43.65, 65.41, 49];
+  const roots = [65.41, 49, 55, 43.65];
 
   for (let k = 0; k < beats; k++) {
     const start = Math.round(k * beat * SR);
@@ -293,14 +293,14 @@ const write = (name, chs) => {
   write("pulse_rhythm", normalize(periodic(dry, (y) => reverb(y, { room: 0.7, wet: 0.14 })), 0.7));
 }
 
-// 5. Emotional pad: Am(add9) – Fmaj7 – C – G6, 6 s per chord (loops).
+// 5. Warm hopeful pad: C(add9) – G – Am7 – Fmaj7, 6 s per chord (loops).
 {
   const per = 6;
   const chords = [
-    [110, 130.81, 164.81, 246.94, 329.63],
-    [87.31, 110, 130.81, 164.81, 220],
     [130.81, 164.81, 196, 261.63, 293.66],
-    [98, 123.47, 146.83, 164.81, 246.94],
+    [98, 123.47, 146.83, 196, 246.94],
+    [110, 130.81, 164.81, 196, 261.63],
+    [87.31, 110, 130.81, 164.81, 220],
   ];
   const len = per * chords.length;
   const chs = [-1, 1].map((side) => {
@@ -384,6 +384,123 @@ const write = (name, chs) => {
   }
   add(x, thud, 0.9);
   write("mat_slap", normalize(reverb(x, { room: 0.9, damp: 0.35, wet: 0.32, predelay: 0.015 }), 0.9));
+}
+
+// 8. Light, joyful groove for the finale: 100 bpm, C – G – Am – F, 8 bars (19.2 s, loops).
+{
+  const r = rng(8);
+  const beat = 0.6;
+  const beats = 32;
+  const n = Math.round(beats * beat * SR);
+  const L = new Float32Array(n);
+  const R = new Float32Array(n);
+  const put = (src, gain, t, pan = 0) => {
+    const off = Math.round(t * SR);
+    add(L, src, gain * Math.min(1, 1 - pan), off, true);
+    add(R, src, gain * Math.min(1, 1 + pan), off, true);
+  };
+  const sweep = (f1, f0, tau, decay, dur) => {
+    const m = Math.round(dur * SR);
+    const y = new Float32Array(m);
+    let ph = 0;
+    for (let i = 0; i < m; i++) {
+      const t = i / SR;
+      ph += (2 * Math.PI * (f0 + (f1 - f0) * Math.exp(-t / tau))) / SR;
+      y[i] = Math.sin(ph) * Math.exp(-t / decay);
+    }
+    return y;
+  };
+  const pluck = (f, dur) => {
+    const N = Math.round(SR / f);
+    const ring = biquad(noise(N, r), "lp", 5000);
+    const y = new Float32Array(Math.round(dur * SR));
+    let idx = 0;
+    for (let i = 0; i < y.length; i++) {
+      const a = ring[idx];
+      ring[idx] = 0.5 * (a + ring[(idx + 1) % N]) * 0.997;
+      y[i] = a;
+      idx = (idx + 1) % N;
+    }
+    return y;
+  };
+  const chords = [
+    { root: 65.41, arp: [261.63, 329.63, 392, 523.25], pad: [130.81, 164.81, 196] },
+    { root: 49, arp: [196, 246.94, 293.66, 392], pad: [98, 123.47, 146.83] },
+    { root: 55, arp: [220, 261.63, 329.63, 440], pad: [110, 130.81, 164.81] },
+    { root: 43.65, arp: [174.61, 220, 261.63, 349.23], pad: [87.31, 110, 130.81] },
+  ];
+  const pattern = [0, 1, 2, 3, 2, 1, 2, 3];
+  const kick = sweep(110, 48, 0.03, 0.2, 0.45);
+  for (let bar = 0; bar < 8; bar++) {
+    const c = chords[Math.floor(bar / 2)];
+    const t0 = bar * 4 * beat;
+    for (const [b, g] of [[0, 0.9], [1.5, 0.45], [2, 0.8]]) put(kick, g, t0 + b * beat);
+    for (const b of [1, 3]) {
+      for (const d of [0, 0.009, 0.019]) {
+        const clap = biquad(mul(noise(Math.round(0.12 * SR), r), (t) => Math.exp(-t / (d > 0.015 ? 0.05 : 0.008))), "bp", 1300, 0.9);
+        put(clap, 0.32, t0 + b * beat + d, 0.1);
+      }
+    }
+    for (let e = 0; e < 8; e++) {
+      const shaker = biquad(mul(noise(Math.round(0.08 * SR), r), (t) => Math.min(1, t / 0.008) * Math.exp(-t / 0.03)), "hp", 6500);
+      put(shaker, e % 2 ? 0.07 : 0.11, t0 + e * (beat / 2), 0.35);
+      const bass = new Float32Array(Math.round(0.28 * SR)).map((_, i) => {
+        const t = i / SR;
+        return (Math.sin(2 * Math.PI * c.root * t) + 0.35 * Math.sin(4 * Math.PI * c.root * t)) * Math.min(1, t / 0.005) * Math.exp(-t / 0.16);
+      });
+      put(bass, 0.42, t0 + e * (beat / 2));
+      put(pluck(c.arp[pattern[e]], 0.9), 0.32, t0 + e * (beat / 2), e % 2 ? -0.35 : 0.35);
+    }
+    const padLen = 4 * beat;
+    const pad = new Float32Array(Math.round(padLen * SR)).map((_, i) => {
+      const t = i / SR;
+      const w = Math.min(1, t / 0.3) * Math.min(1, (padLen - t) / 0.3);
+      return c.pad.reduce((acc, f) => acc + Math.sin(2 * Math.PI * f * t) + 0.2 * Math.sin(4 * Math.PI * f * t), 0) * w;
+    });
+    put(pad, 0.05, t0);
+  }
+  const mono = L.map((v, i) => (v + R[i]) / 2);
+  const wet = periodic(mono, (y) => reverb(y, { room: 0.78, damp: 0.4, wet: 0.5 }));
+  write("joy_groove", normalize([add(L, wet[0], 0.35), add(R, wet[1], 0.35)], 0.7));
+}
+
+// 9. Subtitle cues: an airy swish with a small bright "tink" (three pitches, used in turn).
+[1568, 1760, 2093].forEach((f, k) => {
+  const r = rng(90 + k);
+  const x = buf(0.8);
+  const m = Math.round(0.5 * SR);
+  add(x, biquad(mul(noise(m, r), (t) => Math.min(1, t / 0.04) * Math.exp(-t / 0.11)), "bp", 3200, 0.7), 0.35);
+  const tink = new Float32Array(m).map((_, i) => {
+    const t = i / SR;
+    return (Math.sin(2 * Math.PI * f * t) + 0.25 * Math.sin(4 * Math.PI * f * t)) * Math.min(1, t / 0.003) * Math.exp(-t / 0.09);
+  });
+  add(x, tink, 0.5, Math.round(0.02 * SR));
+  const pop = new Float32Array(Math.round(0.15 * SR)).map((_, i) => {
+    const t = i / SR;
+    return Math.sin(2 * Math.PI * (180 + 120 * Math.exp(-t / 0.02)) * t) * Math.exp(-t / 0.03);
+  });
+  add(x, pop, 0.25);
+  write(`sfx_text_${k + 1}`, normalize(reverb(x, { room: 0.7, wet: 0.2 }), 0.6));
+});
+
+// 10. Cue for the big phrases: a short rising swish landing on a soft thump and a bell.
+{
+  const r = rng(99);
+  const x = buf(1.6);
+  const hit = 0.35;
+  const w = Math.round(0.6 * SR);
+  add(x, biquad(mul(noise(w, r), (t) => (t < hit ? (t / hit) ** 2 : Math.exp(-(t - hit) / 0.08))), "bp", 1400, 0.6), 0.45);
+  const thump = new Float32Array(Math.round(0.5 * SR)).map((_, i) => {
+    const t = i / SR;
+    return Math.sin(2 * Math.PI * (55 + 40 * Math.exp(-t / 0.03)) * t) * Math.exp(-t / 0.12);
+  });
+  add(x, thump, 0.6, Math.round(hit * SR));
+  const bell = new Float32Array(Math.round(1.2 * SR)).map((_, i) => {
+    const t = i / SR;
+    return (Math.sin(2 * Math.PI * 1046.5 * t) + 0.6 * Math.sin(2 * Math.PI * 1568 * t)) * Math.min(1, t / 0.004) * Math.exp(-t / 0.4);
+  });
+  add(x, bell, 0.22, Math.round(hit * SR));
+  write("sfx_display", normalize(reverb(x, { room: 0.8, wet: 0.25 }), 0.7));
 }
 
 rmSync(TMP, { recursive: true, force: true });
