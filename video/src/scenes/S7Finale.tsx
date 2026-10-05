@@ -224,8 +224,8 @@ export const S7Finale: React.FC = () => {
       <Sfx at={s(T.twelve + 0.15)} name="sparkle" />
       <Sfx at={s(T.firstMat)} name="pop2" volume={0.7} />
       <Sfx at={s(T.mat)} name="draw" />
-      <Sfx at={s(T.title)} name="slap" volume={1.3} />
-      <Sfx at={s(T.title)} name="boom" volume={0.8} />
+      <Sfx at={s(T.title)} name="slap" volume={1} />
+      <Sfx at={s(T.title)} name="boom" volume={0.5} />
       <Sfx at={s(T.tag)} name="pop" volume={0.5} />
     </AbsoluteFill>
   );
