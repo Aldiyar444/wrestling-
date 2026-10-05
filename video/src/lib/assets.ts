@@ -1,6 +1,6 @@
 import { createContext, useContext } from "react";
 import { staticFile } from "remotion";
-import { AUDIO, PHOTO_EXTENSIONS, PHOTOS, PhotoKey } from "../config";
+import { AUDIO, PHOTO_EXTENSIONS, PHOTOS, PhotoKey, SFX } from "../config";
 
 export type PhotoInfo = { src: string; w: number; h: number } | null;
 export type Assets = {
@@ -48,8 +48,7 @@ export const probeAssets = async (): Promise<Assets> => {
 
   const files = [
     ...AUDIO.layers.map((l) => l.file),
-    ...AUDIO.sfx.line,
-    AUDIO.sfx.display,
+    ...Object.values(SFX),
     ...(AUDIO.voiceover ? [AUDIO.voiceover] : []),
   ];
   const durations = await Promise.all(files.map((f) => audioDuration(staticFile(`assets/audio/${f}`))));
